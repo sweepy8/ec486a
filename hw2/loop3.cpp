@@ -17,8 +17,10 @@ int main(){
   for(int i = 0; i < N; i++){
     for(int j = 0; j < N; j++){
       result[i][j] = 0;
-      for(int k = 0; k < N; k++){
+      int k = 0;
+      while(k < N){
 	result[i][j] += arr[i][k] * arr[k][j];
+	k++;
       }
     }
   }

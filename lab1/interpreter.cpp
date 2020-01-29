@@ -77,9 +77,29 @@ int main(int argc, char ** argv) {
 
   Program *program = new Program();
 
-  // TODO: Parse the tokens into a tree
+  for(int c = 0; c < tokens.size(); c++){
+    ReduceExpr *current = NULL;
+    if(tokens[0].compare("file") == 0){
+      FileDecl *decl = new FileDecl();
+      program->addExpression(decl);
+    }if(tokens[c] == "+"){
+      if(current == NULL){
+	current = new PlusExpr();
+      }else{
+	PlusExpr next = new PlusExpr();
+	current->addExpression(next);
+	current = next;
+      }
+    }else{
+      FileDecl *decl = program->findDecl(tokens[c]);
+      FileExpr *expr = new FileExpr(decl);
+      
+    }
+  }
 
   program->run();
+
+  delete program;
   
   return 0;
 }
