@@ -36,16 +36,77 @@ static cl::extrahelp MoreHelp("\nMore help text...\n");
 class ECPerfVisitor : public RecursiveASTVisitor<ECPerfVisitor> {
   ASTContext *_context;
   bool _inMain;
+  set<string> _largeVector;
+
+  bool _largeInt;
+  bool _push;
 public:
   
-  explicit ECPerfVisitor(ASTContext *context) : _context(context) {}
+  explicit ECPerfVisitor(ASTContext *context) : _context(context), _inMain(false) ,_largeInt(false), _push(false){}
 
   ~ECPerfVisitor(){
-    // TODO: Output results here
-    llvm::outs() << "Done\n";
+    for(string s : _largeVector){
+      llvm::outs() << s << "\n";
+    }
+  }
+
+  bool VisitCallExpr(CallExpr *call){
+    Expr *callee = call->getCallee();
+    if(callee){
+      callee = callee->IgnoreCasts();
+      MemberExpr *member = dyn_cast<MemberExpr>(callee);
+      if(member){
+	member->dump();
+      }
+    }
+    return true;
+  }
+
+  bool VisitFunctionDecl(FunctionDecl *decl){
+    if(decl->getNameAsString() == "main"){
+      _inMain = true;
+    }
+    return true;
   }
   
-  // TODO: Add Visit methods here
+  bool VisitIntegerLiteral(IntegerLiteral *intLit){
+    if(_inMain){
+      if(intLit->getValue().getLimitedValue() > 10000){
+	_largeInt = true;
+      }else{
+	_largeInt = false;
+      }
+    }
+    return true;
+  }
+
+  bool VisitCXXMemberCallExpr(CXXMemberCallExpr *expr){
+    if(_inMain){
+      CXXMethodDecl *decl = expr->getMethodDecl();
+      if(decl){
+	if(decl->getNameAsString() == "push_back"){
+	  _push = true;
+	}else{
+	  _push = false;
+	}
+      }
+    }
+    return true;
+  }
+
+  bool VisitDeclRefExpr(DeclRefExpr *declRef){
+    if(_inMain){
+      ValueDecl *value = declRef->getDecl();
+      if(value){
+	if(_largeInt && _push){
+	  _largeVector.insert(value->getNameAsString());
+	  _largeInt = false;
+	  _push = false;
+	}
+      }
+    }
+    return true;
+  }
 };
 
 /*
