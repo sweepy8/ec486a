@@ -33,21 +33,84 @@ static cl::extrahelp MoreHelp("\nMore help text...\n");
  * want to examine.
  */
 
+class LoopInfo{
+public:
+  std::string _file;
+  int _start;
+  int _end;
+  int _nested;
+
+  LoopInfo() : _start(0),_end(0),_nested(1) {}
+};
+
 class LoopsVisitor : public RecursiveASTVisitor<LoopsVisitor> {
   ASTContext *_context;
   bool _inMain;
 
-  // TODO: Add any necessary member variables here
+  std::vector<LoopInfo> loops;
   
 public:
   
   explicit LoopsVisitor(ASTContext *context) : _context(context), _inMain(false) {}
 
   ~LoopsVisitor(){
-    // TODO: Output results here using llvm::outs()
+    for(LoopInfo loop : loops){
+      llvm::outs() << loop._file << ":" << loop._start << " has complexity O(N^" << loop._nested << ")\n";
+    }
   }
 
-  // TODO: Add Visit methods here
+  bool VisitFunctionDecl(FunctionDecl *decl){
+    if(decl->getNameAsString() == "main"){
+      _inMain = true;
+    }
+    return true;
+  }
+
+  bool VisitForStmt(ForStmt *forStmt){
+    LoopInfo info;
+    
+    SourceLocation loc = forStmt->getBeginLoc();   
+    std::string s = loc.printToString(_context->getSourceManager());
+
+    size_t loc1 = s.find(":");
+    size_t loc2 = s.find_last_of(":");
+    info._file = s.substr(0,loc1);
+    info._start = std::stoi(s.substr(loc1+1,loc2-2));
+
+    loc = forStmt->getEndLoc();   
+    s = loc.printToString(_context->getSourceManager());
+
+    loc1 = s.find(":");
+    loc2 = s.find_last_of(":");
+
+    info._end = std::stoi(s.substr(loc1+1,loc2-2));
+
+    bool nested = false;
+
+    for(LoopInfo& l : loops){
+      if(l._file.compare(info._file) == 0){
+	if(l._start <= info._start && l._end >= info._end){
+	  nested = true;
+	  l._nested++;
+	  break;
+	}
+      }
+    }
+
+    if(!nested){
+      loops.push_back(info);
+    }
+    
+    return true;
+  }
+
+  bool VisitWhileStmt(WhileStmt *whileStmt){
+    SourceLocation loc = whileStmt->getBeginLoc();   
+    std::string s = loc.printToString(_context->getSourceManager());
+    //llvm::outs() << s << "\n";
+
+    return true;
+  }
 };
 
 /*
