@@ -57,3 +57,8 @@ class MinExpr : public ReduceExpr{
 public:
   virtual int reduce(int x, int y);
 };
+
+class SubExpr : public ReduceExpr{
+public:
+  virtual int reduce(int x, int y);
+};

@@ -11,8 +11,6 @@ vector<int> FileDecl::run(){
   while(input >> i){
     _values.push_back(i);
   }
-
-  input.close();
   
   return _values;
 }
@@ -67,12 +65,15 @@ vector<int> ReduceExpr::run(){
     for(Expr *expr : _expressions){
       vector<int> sub = expr->run();
       
+      if(sub.size() == 1){
+	return sub;
+      }
+      
       int result = sub[0];
       
       for(int c = 1; c < sub.size(); c++){
 	result = this->reduce(result,sub[c]);
       }
-      
       results.push_back(result);
     }
     return results;
@@ -85,6 +86,10 @@ void ReduceExpr::addExpression(Expr *expr){
 
 int PlusExpr::reduce(int x, int y){
   return x + y;
+}
+
+int SubExpr::reduce(int x, int y){
+  return x - y;
 }
 
 int MultiplyExpr::reduce(int x, int y){
