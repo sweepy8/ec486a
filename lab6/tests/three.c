@@ -2,11 +2,6 @@
 #include <stdlib.h>
 
 int main(int argc, char **argv){
-  if(argc < 2){
-    printf("Usage: %s [x]\n",argv[0]);
-    return 1;
-  }
-
   int result;
   int x = atoi(argv[1]);
   int y = 6;
