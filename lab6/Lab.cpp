@@ -18,12 +18,19 @@ using namespace llvm;
 #define DEBUG_TYPE "lab"
 
 namespace {
-  struct Lab : public BasicBlockPass {
+  struct Lab : public FunctionPass {
     static char ID;
     
-    Lab() : BasicBlockPass(ID) {}
+    Lab() : FunctionPass(ID) {}
     
-    bool runOnBasicBlock(BasicBlock &BB) override {
+    bool runOnFunction(Function &F) {
+      for(BasicBlock &BB : F){
+        runOnBasicBlock(BB);
+      }
+      return true;
+    }
+
+    bool runOnBasicBlock(BasicBlock &BB) {
       // This map should store the values that we can
       // replace with a constant
       std::map<Value*,ConstantInt*> constants;
