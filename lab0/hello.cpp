@@ -3,7 +3,8 @@
 using namespace std;
 
 int main(){
-  cout << "Test EC486A!\n";
-    
+  cout << "Hello EC486A!\n";
+  cout << "Another one\n";
+  
   return 0;
 }
