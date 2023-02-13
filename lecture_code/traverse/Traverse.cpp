@@ -55,12 +55,24 @@ public:
     llvm::outs() << "Finishing WalkUp for FunctionDecl: " << functionDecl->getNameAsString() << "\n";
     return true;
   }
-  
+
   bool VisitFunctionDecl(FunctionDecl *functionDecl){
     llvm::outs() << "Visiting FunctionDecl: " << functionDecl->getNameAsString() << "\n";
     return true;
   }
-  
+
+  bool WalkUpFromNamedDecl(NamedDecl *namedDecl){
+    llvm::outs() << "Starting WalkUp for NamedDecl: " << namedDecl->getNameAsString() << "\n";
+    RecursiveASTVisitor<TraverseVisitor>::WalkUpFromNamedDecl(namedDecl);
+    llvm::outs() << "Finishing WalkUp for NamedDecl: " << namedDecl->getNameAsString() << "\n";
+    return true;
+  }
+
+  bool VisitNamedDecl(NamedDecl *namedDecl){
+    llvm::outs() << "Visiting NamedDecl: " << namedDecl->getNameAsString() << "\n";
+    return true;
+  }
+
   bool TraverseCallExpr(CallExpr *callExpr){
     FunctionDecl *functionDecl = callExpr->getDirectCallee();
     if(functionDecl){
@@ -80,15 +92,15 @@ public:
     }
     return true;
   }
-  
-  bool VisitCallExpr(CallExpr *callExpr){
-     FunctionDecl *functionDecl = callExpr->getDirectCallee();
 
-     if(functionDecl){
-       llvm::outs() << "Visiting CallExpr: " << functionDecl->getNameAsString() << "()\n";
-     }
-     
-     return true;
+  bool VisitCallExpr(CallExpr *callExpr){
+    FunctionDecl *functionDecl = callExpr->getDirectCallee();
+
+    if(functionDecl){
+      llvm::outs() << "Visiting CallExpr: " << functionDecl->getNameAsString() << "()\n";
+    }
+
+    return true;
   }
 };
 
@@ -97,8 +109,8 @@ class TraverseConsumer : public clang::ASTConsumer{
 
 public:
   explicit TraverseConsumer(ASTContext *context) : _visitor(context) {}
-  
-  virtual void HandleTranslationUnit(clang::ASTContext& Context){
+
+  virtual void HandleTranslationUnit(clang::ASTContext& Context) override {
     _visitor.TraverseDecl(Context.getTranslationUnitDecl());
   }
 };
@@ -106,14 +118,15 @@ public:
 class Traverse : public clang::ASTFrontendAction{
 public:
   virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance& Compiler,
-								llvm::StringRef InFile) {
+								llvm::StringRef InFile) override {
     return std::unique_ptr<clang::ASTConsumer>(new TraverseConsumer(&Compiler.getASTContext()));
   }
 };
 
 int main(int argc, const char **argv) {
-  CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
+  llvm::Expected<CommonOptionsParser> OptionsParserE = CommonOptionsParser::create(argc, argv, MyToolCategory);
+  CommonOptionsParser& OptionsParser = OptionsParserE.get();
   ClangTool Tool(OptionsParser.getCompilations(),
-                 OptionsParser.getSourcePathList());
+		 OptionsParser.getSourcePathList());
   return Tool.run(newFrontendActionFactory<Traverse>().get());
 }

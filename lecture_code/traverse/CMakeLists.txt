@@ -8,4 +8,4 @@ target_link_libraries(traverse
   PRIVATE
   clangTooling
   clangBasic
-  )
+    )
