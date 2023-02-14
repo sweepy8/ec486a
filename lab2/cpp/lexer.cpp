@@ -77,7 +77,7 @@ int main(int argc, char **argv)
       tokens.push_back(tok3);
       tokens.push_back(tok4);
     }
-    //assign due_date 06FEB23 lab2
+    //assign remind daily0900 lab2
     else if(regex_match(line.c_str(),what,expr3))
     {
       Token tok1;
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
       tokens.push_back(tok3);
       tokens.push_back(tok4);
     }
-    //assign remind daily0900 lab2
+    //assign due_date 06FEB23 lab2
     else if(regex_match(line.c_str(),what,expr4))
     {
       Token tok1;
