@@ -1,0 +1,7 @@
+all:
+	./bin/clang++ -c -emit-llvm main.cpp
+	./bin/opt -enable-new-pm=0 --load=./lib/LLVMLab.so --lab < main.bc > opt.bc
+	./bin/llc opt.bc -o opt.s
+	./bin/clang++ -c hook.cpp
+	./bin/clang++ -o main opt.s hook.o
+						      
